@@ -1,45 +1,86 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Nexaas.ID.Client.Entities;
+
 
 namespace Nexaas.ID.Client
 {
-    public class NexaasID 
+    public class NexaasID
     {
         private readonly string _clientId;
 
         private readonly string _clientSecret;
 
-        private readonly Uri _baseUri;
-
         private readonly string _redirectUri;
 
         private readonly HttpClient _httpClient;
 
-        public NexaasID(string clientId, string clientSecret, string redirectUri = null, string baseUri = null)
+        public readonly string BaseUri;
+
+        private NexaasID(string clientId, string clientSecret, string redirectUri = null, string baseUri = null)
         {
-            _baseUri = new Uri(baseUri ?? "https://id.nexaas.com");
+            BaseUri = baseUri ?? "https://id.nexaas.com";
             _clientId = clientId;
             _clientSecret = clientSecret;
             _redirectUri = redirectUri;
-            _httpClient = new HttpClient()
+            _httpClient = new HttpClient
             {
-                BaseAddress = _baseUri
+                BaseAddress = new Uri(BaseUri)
             };
         }
 
         public static NexaasID Sandbox(string clientId, string clientSecret, string redirectUri = null) =>
             new NexaasID(clientId, clientSecret, redirectUri, "https://sandbox.id.nexaas.com");
-        
+
         public static NexaasID Production(string clientId, string clientSecret, string redirectUri = null) =>
             new NexaasID(clientId, clientSecret, redirectUri);
 
+        private AuthenticationHeaderValue SetAuthenticationBearerAccessToken(string accessToken) =>
+            new AuthenticationHeaderValue("Bearer", accessToken);
+
+        private async Task<BaseResponse<T>> SendAsync<T>(HttpMethod method, string resource, string accessToken = null,
+            object data = null)
+        {
+            using (var requestMessage = new HttpRequestMessage(method, resource))
+            {
+                var baseResponse = new BaseResponse<T>();
+
+                if (!string.IsNullOrWhiteSpace(accessToken))
+                {
+                    requestMessage.Headers.Authorization =
+                        SetAuthenticationBearerAccessToken(accessToken);
+                }
+
+                if (data != null)
+                {
+                    requestMessage.Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8,
+                        "application/json");
+                }
+
+                var response = await _httpClient.SendAsync(requestMessage);
+
+                baseResponse.StatusCode = response.StatusCode;
+
+                baseResponse.Content = await response.Content.ReadAsStringAsync();
+
+                if (baseResponse.StatusCode == HttpStatusCode.OK)
+                    baseResponse.Data = JsonConvert.DeserializeObject<T>(baseResponse.Content);
+
+                return baseResponse;
+            }
+        }
+        
         public string GetAuthorizeUrl(string redirectUri = null)
         {
-            return _baseUri.ToString()
+            return BaseUri
                 .AddPath("oauth")
                 .AddPath("authorize")
                 .AddQueryStringParameter("client_id", _clientId)
@@ -48,40 +89,46 @@ namespace Nexaas.ID.Client
                 .AddQueryStringParameter("scope", "profile");
         }
 
-        public async Task<OauthTokenResponse> GetAuthorizationToken(string code, string redirectUri = null)
-        {
-            var data = new OauthTokenRequest(_clientId, _clientSecret, code, redirectUri ?? _redirectUri);
+        public async Task<BaseResponse<OauthTokenResponse>> GetAuthorizationToken(string code,
+            string redirectUri = null) =>
+            await SendAsync<OauthTokenResponse>(HttpMethod.Post, "oauth/token", null, new OauthTokenRequest(
 
-            var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data), Encoding.UTF8,
-                "application/json");
+                _clientId,
+                _clientSecret,
+                code,
+                redirectUri ?? _redirectUri
+            ));
 
-            var response = await _httpClient.PostAsync("oauth/token", content);
+        public async Task<BaseResponse<Profile>> GetProfile(string accessToken) =>
+            await SendAsync<Profile>(HttpMethod.Get, "api/v1/profile", accessToken);
 
-            var oauthTokenResponse =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<OauthTokenResponse>(
-                    await response.Content.ReadAsStringAsync());
-
-            return oauthTokenResponse;
-        }
-
-        public async Task<Profile> GetProfile(string accessToken)
-        {
-            using( var requestMessage = new HttpRequestMessage(HttpMethod.Get, "api/v1/profile"))
-            {
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-              
-                var response = await _httpClient.SendAsync(requestMessage);
-                 
-                var profile = Newtonsoft.Json.JsonConvert.DeserializeObject<Profile>(
-                    await response.Content.ReadAsStringAsync());
-
-                return profile;
-            }
-        }
-
-        public async Task<Profile> GetProfile(OauthTokenResponse oauthTokenResponse) =>
+        public async Task<BaseResponse<Profile>> GetProfile(OauthTokenResponse oauthTokenResponse) =>
             await GetProfile(oauthTokenResponse.AccessToken);
 
-       
+        public async Task<BaseResponse<ProfessionalInfo>> GetProfessionalInfo(string accessToken) =>
+            await SendAsync<ProfessionalInfo>(HttpMethod.Get, "api/v1/profile/professional_info", accessToken);
+
+        public async Task<BaseResponse<ProfessionalInfo>> GetProfessionalInfo(OauthTokenResponse oauthTokenResponse) =>
+            await GetProfessionalInfo(oauthTokenResponse.AccessToken);
+
+        public async Task<BaseResponse<Contacts>> GetContacts(string accessToken) =>
+            await SendAsync<Contacts>(HttpMethod.Get, "api/v1/profile/contacts", accessToken);
+
+        public async Task<BaseResponse<Contacts>> GetContacts(OauthTokenResponse oauthTokenResponse) =>
+            await GetContacts(oauthTokenResponse.AccessToken);
+
+        public async Task<BaseResponse<Emails>> GetEmails(string accessToken) =>
+            await SendAsync<Emails>(HttpMethod.Get, "api/v1/profile/emails", accessToken);
+
+        public async Task<BaseResponse<Emails>> GetEmails(OauthTokenResponse oauthTokenResponse) =>
+            await GetEmails(oauthTokenResponse.AccessToken);
+
+        public async Task<BaseResponse<ApplicationInvitiationResponse>> InviteToApplication(
+            ApplicationInvitiationRequest applicationInvitiationRequest) =>
+            await SendAsync<ApplicationInvitiationResponse>(HttpMethod.Post, "api/v1/sign_up",
+                applicationInvitiationRequest.AccessToken, new
+                {
+                    invited = applicationInvitiationRequest.Email
+                });
     }
 }

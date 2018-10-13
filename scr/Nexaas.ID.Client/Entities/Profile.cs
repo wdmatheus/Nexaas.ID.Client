@@ -46,6 +46,12 @@ namespace Nexaas.ID.Client.Entities
 
         [JsonProperty("bio")]
         public string Bio { get; set; }
+
+        public ProfessionalInfo ProfessionalInfo { get; set; }
+
+        public Contacts Contacts { get; set; }
+
+        public Emails Emails { get; set; }
     }
 }
 
