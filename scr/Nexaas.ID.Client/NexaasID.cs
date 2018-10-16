@@ -78,9 +78,12 @@ namespace Nexaas.ID.Client
                 return baseResponse;
             }
         }
-        
+
         public string GetAuthorizeUrl(string redirectUri = null)
         {
+            if (!string.IsNullOrWhiteSpace(redirectUri) && !Validations.IsUrl(redirectUri))
+                throw new NexaasIDException(Messages.InvalidRedirectUri);
+            
             return BaseUri
                 .AddPath("oauth")
                 .AddPath("authorize")
@@ -91,57 +94,97 @@ namespace Nexaas.ID.Client
         }
 
         public async Task<BaseResponse<OauthTokenResponse>> GetAuthorizationToken(string code,
-            string redirectUri = null) =>
-            await SendAsync<OauthTokenResponse>(HttpMethod.Post, "oauth/token", null, new OauthTokenRequest(
+            string redirectUri = null)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                throw new NexaasIDException(Messages.EmptyCode);
+
+            if (!string.IsNullOrWhiteSpace(redirectUri) && !Validations.IsUrl(redirectUri))
+                throw new NexaasIDException(Messages.InvalidRedirectUri);
+
+            return await SendAsync<OauthTokenResponse>(HttpMethod.Post, "oauth/token", null, new OauthTokenRequest(
                 _clientId,
                 _clientSecret,
                 code,
                 redirectUri ?? _redirectUri
             ));
+        }
 
-        public async Task<BaseResponse<Profile>> GetProfile(string accessToken) =>
-            await SendAsync<Profile>(HttpMethod.Get, "api/v1/profile", accessToken);
+
+        public async Task<BaseResponse<Profile>> GetProfile(string accessToken)
+        {
+            ValidateAccessToken(accessToken);
+            return await SendAsync<Profile>(HttpMethod.Get, "api/v1/profile", accessToken);
+        }
 
         public async Task<BaseResponse<Profile>> GetProfile(OauthTokenResponse oauthTokenResponse) =>
             await GetProfile(oauthTokenResponse.AccessToken);
 
-        public async Task<BaseResponse<ProfessionalInfo>> GetProfessionalInfo(string accessToken) =>
-            await SendAsync<ProfessionalInfo>(HttpMethod.Get, "api/v1/profile/professional_info", accessToken);
+        public async Task<BaseResponse<ProfessionalInfo>> GetProfessionalInfo(string accessToken)
+        {
+            ValidateAccessToken(accessToken);
+            return await SendAsync<ProfessionalInfo>(HttpMethod.Get, "api/v1/profile/professional_info", accessToken);
+        }
 
         public async Task<BaseResponse<ProfessionalInfo>> GetProfessionalInfo(OauthTokenResponse oauthTokenResponse) =>
             await GetProfessionalInfo(oauthTokenResponse.AccessToken);
 
-        public async Task<BaseResponse<Contacts>> GetContacts(string accessToken) =>
-            await SendAsync<Contacts>(HttpMethod.Get, "api/v1/profile/contacts", accessToken);
+        public async Task<BaseResponse<Contacts>> GetContacts(string accessToken)
+        {
+            ValidateAccessToken(accessToken);
+            return await SendAsync<Contacts>(HttpMethod.Get, "api/v1/profile/contacts", accessToken);
+        }
 
         public async Task<BaseResponse<Contacts>> GetContacts(OauthTokenResponse oauthTokenResponse) =>
             await GetContacts(oauthTokenResponse.AccessToken);
 
-        public async Task<BaseResponse<Emails>> GetEmails(string accessToken) =>
-            await SendAsync<Emails>(HttpMethod.Get, "api/v1/profile/emails", accessToken);
+        public async Task<BaseResponse<Emails>> GetEmails(string accessToken)
+        {
+            ValidateAccessToken(accessToken);
+            return await SendAsync<Emails>(HttpMethod.Get, "api/v1/profile/emails", accessToken);
+        }
+
 
         public async Task<BaseResponse<Emails>> GetEmails(OauthTokenResponse oauthTokenResponse) =>
             await GetEmails(oauthTokenResponse.AccessToken);
 
         public async Task<BaseResponse<ApplicationInvitiationResponse>> InviteToApplication(
-            ApplicationInvitiationRequest applicationInvitiationRequest) =>
-            await SendAsync<ApplicationInvitiationResponse>(HttpMethod.Post, "api/v1/sign_up",
+            ApplicationInvitiationRequest applicationInvitiationRequest)
+        {
+            if (applicationInvitiationRequest == null)
+                throw new NexaasIDException(Messages.NullApplicationInvitiationRequest);
+
+            if (string.IsNullOrWhiteSpace(applicationInvitiationRequest.Email))
+                throw new NexaasIDException(Messages.EmptyApplicationInvitiationRequestEmail);
+
+            if (!Validations.IsEmail(applicationInvitiationRequest.Email))
+                throw new NexaasIDException(Messages.InvalidEmail);
+
+            ValidateAccessToken(applicationInvitiationRequest.AccessToken);
+
+            return await SendAsync<ApplicationInvitiationResponse>(HttpMethod.Post, "api/v1/sign_up",
                 applicationInvitiationRequest.AccessToken, new
                 {
                     invited = applicationInvitiationRequest.Email
                 });
+        }
 
         private void ValidateClient()
         {
             if (string.IsNullOrWhiteSpace(_clientId))
-            {
-               throw new NexaasIDException("Client Id is required");
-            }
-            
+                throw new NexaasIDException(Messages.EmptyClientId);
+
             if (string.IsNullOrWhiteSpace(_clientSecret))
-            {
-                throw new NexaasIDException("Client Secret is required");
-            }
+                throw new NexaasIDException(Messages.EmptyClientSecret);
+            
+            if (!string.IsNullOrWhiteSpace(_redirectUri) && !Validations.IsUrl(_redirectUri))
+                throw new NexaasIDException(Messages.InvalidRedirectUri);
+        }
+
+        private void ValidateAccessToken(string accessToken)
+        {
+            if (string.IsNullOrWhiteSpace(accessToken))
+                throw new NexaasIDException(Messages.EmptyAccessToken);
         }
     }
 }
