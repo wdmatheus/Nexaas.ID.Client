@@ -7,16 +7,18 @@ namespace Nexaas.ID.Client
     public static class Extensions
     {
         public static string UrlEncode(this string value) =>
-            System.Net.WebUtility.UrlEncode(value);
+            string.IsNullOrWhiteSpace(value) ? string.Empty :System.Net.WebUtility.UrlEncode(value);
 
         public static string UrlDecode(this string value) =>
-            System.Net.WebUtility.UrlDecode(value);
+            string.IsNullOrWhiteSpace(value) ? string.Empty : System.Net.WebUtility.UrlDecode(value);
 
         public static string AddPath(this string url, string path) =>
-            url.EndsWith("/") ? $"{url}{path}" : $"{url}/{path}";
+            string.IsNullOrWhiteSpace(url) ? string.Empty : url.EndsWith("/") ? $"{url}{path}" : $"{url}/{path}";
 
         public static string AddQueryStringParameter(this string url, string parameter, string value)
         {
+            if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+
             var builder = new UriBuilder(url);
 
             if (builder.Query.Length > 1)

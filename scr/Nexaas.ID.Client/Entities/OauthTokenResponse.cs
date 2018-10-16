@@ -24,7 +24,7 @@ namespace Nexaas.ID.Client.Entities
         public string CreatedAt { get; set; }
 
         [JsonProperty("api_token")]
-        public string ApiToiken { get; set; }
+        public string ApiToken { get; set; }
     }
 }
 

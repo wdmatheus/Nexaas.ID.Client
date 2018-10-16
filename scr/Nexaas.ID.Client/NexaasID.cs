@@ -35,6 +35,7 @@ namespace Nexaas.ID.Client
             {
                 BaseAddress = new Uri(BaseUri)
             };
+            ValidateClient();
         }
 
         public static NexaasID Sandbox(string clientId, string clientSecret, string redirectUri = null) =>
@@ -86,13 +87,12 @@ namespace Nexaas.ID.Client
                 .AddQueryStringParameter("client_id", _clientId)
                 .AddQueryStringParameter("response_type", "code")
                 .AddQueryStringParameter("redirect_uri", redirectUri ?? _redirectUri)
-                .AddQueryStringParameter("scope", "profile");
+                .AddQueryStringParameter("scope", "profile+invite");
         }
 
         public async Task<BaseResponse<OauthTokenResponse>> GetAuthorizationToken(string code,
             string redirectUri = null) =>
             await SendAsync<OauthTokenResponse>(HttpMethod.Post, "oauth/token", null, new OauthTokenRequest(
-
                 _clientId,
                 _clientSecret,
                 code,
@@ -130,5 +130,18 @@ namespace Nexaas.ID.Client
                 {
                     invited = applicationInvitiationRequest.Email
                 });
+
+        private void ValidateClient()
+        {
+            if (string.IsNullOrWhiteSpace(_clientId))
+            {
+               throw new NexaasIDException("Client Id is required");
+            }
+            
+            if (string.IsNullOrWhiteSpace(_clientSecret))
+            {
+                throw new NexaasIDException("Client Secret is required");
+            }
+        }
     }
 }
