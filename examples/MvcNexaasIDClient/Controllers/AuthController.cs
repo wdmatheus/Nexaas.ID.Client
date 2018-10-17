@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nexaas.ID.Client;
+using Nexaas.ID.Client.Entities;
 
 namespace MvcNexaasIDClient.Controllers
 {
@@ -13,37 +14,49 @@ namespace MvcNexaasIDClient.Controllers
     {
         private readonly NexaasID _nexaasId;
 
+        /// Inject NexaasID
         public AuthController(NexaasID nexaasId)
         {
             _nexaasId = nexaasId;
         }
 
+        /// <summary>
+        /// Get and redirect to Nexaas ID authorize url
+        /// </summary>
+        /// <returns>IActionResult</returns>
         [AllowAnonymous, HttpGet]
         public IActionResult Index() => Redirect(_nexaasId.GetAuthorizeUrl());
 
+        /// <summary>
+        /// Action callback, invoked by Nexaas ID after user authentication
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns>IActionResult</returns>
         [HttpGet]
         public async Task<IActionResult> Signin(string code)
         {
             if(string.IsNullOrWhiteSpace(code))
                 Redirect(_nexaasId.GetAuthorizeUrl());
             
-            var authTokenResponse = await _nexaasId.GetAuthorizationToken(code);
+            ///Retrive user access token
+            BaseResponse<OauthTokenResponse> authTokenResponse = await _nexaasId.GetAuthorizationToken(code);
             
-            var profileResponse = await _nexaasId.GetProfile(authTokenResponse.Data);
+            ///Retrive user data
+            BaseResponse<Profile> profileResponse = await _nexaasId.GetProfile(authTokenResponse.Data);
 
-            var profile = profileResponse.Data;
+            Profile profile = profileResponse.Data;
             
+            ///Define user claims
             var claims = new []
             {
                 new Claim(ClaimTypes.Name, profile.FullName),
                 new Claim(ClaimTypes.Email, profile.Email),
-                new Claim(ClaimTypes.Gender, profile.Gender ?? ""),
-                new Claim(ClaimTypes.DateOfBirth, profile.Birth?.ToString() ?? ""),
                 new Claim("NexaasIDAccessToken", authTokenResponse.Data.AccessToken), 
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             
+            ///Authenticates user
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
                 new ClaimsPrincipal(claimsIdentity));
 

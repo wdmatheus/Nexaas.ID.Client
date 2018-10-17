@@ -24,18 +24,20 @@ namespace MvcNexaasIDClient
 
         public IConfiguration Configuration { get; }
         public IHostingEnvironment Env { get;  }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+        
         public void ConfigureServices(IServiceCollection services)
         {
+            //Retrive Nexaas ID application configuration
             var clientId = Configuration.GetSection("NexaasIDConfig:ClientId").Value;
             var clientSecret = Configuration.GetSection("NexaasIDConfig:clientSecret").Value;
             var redirectUri = Configuration.GetSection("NexaasIDConfig:RedirectUri").Value;
 
+            //Setup Nexaas.ID.Client
             var nexaasId = Env.IsProduction()
                 ? NexaasID.Production(clientId, clientSecret, redirectUri)
                 : NexaasID.Sandbox(clientId, clientSecret, redirectUri);
 
+            //Add Nexaas.ID.Client in DI container
             services.AddSingleton(nexaasId);
             
             services.Configure<CookiePolicyOptions>(options =>
@@ -44,6 +46,7 @@ namespace MvcNexaasIDClient
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
             
+            //Configure cookie authentication
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -54,8 +57,7 @@ namespace MvcNexaasIDClient
             
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+      
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
