@@ -12,6 +12,6 @@ namespace Nexaas.ID.Client.Entities
         public string Email { get; set; }
 
         [JsonProperty("requester")]
-        public Guid Requester { get; set; }
+        public Guid? Requester { get; set; }
     }
 }
