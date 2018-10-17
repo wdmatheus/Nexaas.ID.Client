@@ -193,6 +193,7 @@ public class AuthController : Controller
 {
     private readonly NexaasID _nexaasId;
 
+    /// Inject NexaasID
     public AuthController(NexaasID nexaasId)
     {
         _nexaasId = nexaasId;
