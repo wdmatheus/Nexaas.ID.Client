@@ -107,7 +107,7 @@ namespace Nexaas.ID.Client.Tests
             Assert.Equal(exception.Message, Messages.NullApplicationInvitiationRequest);
         }
 
-        [Fact(DisplayName = "Can't invite to application with null with empty access token")]
+        [Fact(DisplayName = "Can't invite to application with empty access token")]
         public void CantInviteToApplicationWithEmptyAccessToken()
         {
             Exception exception =
@@ -119,7 +119,7 @@ namespace Nexaas.ID.Client.Tests
             Assert.Equal(exception.Message, Messages.EmptyAccessToken);
         }
         
-        [Fact(DisplayName = "Can't invite to application with null with empty email")]
+        [Fact(DisplayName = "Can't invite to application with empty email")]
         public void CantInviteToApplicationWithEmptyEmail()
         {
             Exception exception =
@@ -131,7 +131,7 @@ namespace Nexaas.ID.Client.Tests
             Assert.Equal(exception.Message, Messages.EmptyApplicationInvitiationRequestEmail);
         }
         
-        [Fact(DisplayName = "Can't invite to application with null with invalid email")]
+        [Fact(DisplayName = "Can't invite to application with invalid email")]
         public void CantInviteToApplicationWithInvalidEmail()
         {
             Exception exception =
