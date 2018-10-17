@@ -76,10 +76,11 @@ namespace MvcNexaasIDClient.Controllers
         
         public async Task<IActionResult> ClientCredentials([FromServices]NexaasID nexaasId)
         {
-
             var tokenResponse = await nexaasId.GetClientAuthorizationToken("profile invite");
 
-            return View(tokenResponse?.Data.AccessToken);
+            ViewBag.AccessToken = tokenResponse?.Data.AccessToken;
+            
+            return View();
         }
     }
 }
