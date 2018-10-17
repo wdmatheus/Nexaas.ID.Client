@@ -6,7 +6,7 @@ Nexaas.Id.Client doesn't store any data. The application must authenticate users
 
 # Installation
 
-This package is available through Nuget Packages: https://www.nuget.org/packages/Nexaas.ID.Client/
+This package is available via Nuget Packages: https://www.nuget.org/packages/Nexaas.ID.Client
 
 **Package Manager**
 ```nuget
