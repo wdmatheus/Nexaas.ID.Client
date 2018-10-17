@@ -139,7 +139,6 @@ namespace Nexaas.ID.Client.Tests
                         NexaasIdInstance.InviteToApplication(
                             new ApplicationInvitiationRequest("invalid_email", "access token")))
                     .Result;
-
             Assert.Equal(exception.Message, Messages.InvalidEmail);
         }
     }
