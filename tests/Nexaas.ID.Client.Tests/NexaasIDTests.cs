@@ -141,5 +141,15 @@ namespace Nexaas.ID.Client.Tests
                     .Result;
             Assert.Equal(exception.Message, Messages.InvalidEmail);
         }
+        
+        [Fact(DisplayName = "Can't get client access token with empty scope")]
+        public void CantGetClientAccessTokenWithEmptyScope()
+        {
+            Exception exception =
+                Assert.ThrowsAsync<NexaasIDException>(() =>
+                        NexaasIdInstance.GetClientAuthorizationToken(string.Empty))
+                    .Result;
+            Assert.Equal(exception.Message, Messages.EmptyScope);
+        }
     }
 }

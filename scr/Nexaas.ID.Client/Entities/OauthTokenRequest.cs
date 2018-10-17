@@ -10,13 +10,14 @@ namespace Nexaas.ID.Client.Entities
         }
         
         public OauthTokenRequest(string clientId, string clientSecret, string code, string redirectUri,
-            string grantType = "authorization_code")
+            string grantType = "authorization_code", string scope = null)
         {
             ClientId = clientId;
             ClientSecret = clientSecret;
             Code = code;
             RedirectUri = redirectUri;
             GrantType = grantType;
+            Scope = scope;
         }
 
         [JsonProperty("client_id")]
@@ -33,5 +34,8 @@ namespace Nexaas.ID.Client.Entities
 
         [JsonProperty("grant_type")]
         public string GrantType { get; set; }
+        
+        [JsonProperty("scope")]
+        public string Scope { get; set; }
     }
 }

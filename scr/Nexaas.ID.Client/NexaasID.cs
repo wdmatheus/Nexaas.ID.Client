@@ -169,6 +169,22 @@ namespace Nexaas.ID.Client
                 });
         }
 
+        public async Task<BaseResponse<OauthTokenResponse>> GetClientAuthorizationToken(string scope)
+        {
+            if (string.IsNullOrWhiteSpace(scope))
+            {
+                throw new NexaasIDException(Messages.EmptyScope);
+            }
+
+            return await SendAsync<OauthTokenResponse>(HttpMethod.Post, "oauth/token", data: new OauthTokenRequest(
+                _clientId,
+                _clientSecret,
+                null,
+                _redirectUri,
+                "client_credentials",
+                scope));
+        }
+
         private void ValidateClient()
         {
             if (string.IsNullOrWhiteSpace(_clientId))
