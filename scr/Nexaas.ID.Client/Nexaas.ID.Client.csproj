@@ -1,12 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <Version>1.0.6</Version>
+        <TargetFrameworks>netstandard1.1;netstandard1.3;netstandard2.0;</TargetFrameworks>
+        <Version>1.0.7</Version>
+        <Authors>Wendel Matheus</Authors>
+        <Company>Lexnnova</Company>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+        <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />       
     </ItemGroup>
-
 </Project>
