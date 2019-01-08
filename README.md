@@ -25,7 +25,7 @@ paket add Nexaas.ID.Client
 
 # Dependencies
 
-.NET Standard >=2.0, Newtonsoft.Json >= 11.0.2
+.NET Standard >=1.1, Newtonsoft.Json >= 11.0.2
 
 You can check supported frameworks here:
 
