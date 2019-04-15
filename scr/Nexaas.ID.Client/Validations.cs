@@ -8,7 +8,7 @@ namespace Nexaas.ID.Client
             @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-0-9a-z]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$";
         private const string UrlPattern = @"^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$";
         
-        public static bool IsEmail(string email) => Regex.IsMatch(email, EmailPattern);
+        public static bool IsEmail(string email) => Regex.IsMatch(email, EmailPattern, RegexOptions.IgnoreCase);
 
         public static bool IsUrl(string url)
         {
